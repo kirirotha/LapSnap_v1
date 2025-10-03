@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:15-alpine
+    container_name: race-timing-db
+    environment:
+      POSTGRES_DB: race_timing
+      POSTGRES_USER: race_user
+      POSTGRES_PASSWORD: race_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./services/core-api/database/init:/docker-entrypoint-initdb.d
+    networks:
+      - race-timing-network
+
+  # Redis for caching and real-time features
+  redis:
+    image: redis:7-alpine
+    container_name: race-timing-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - race-timing-network
+
+  # Core API Service
+  core-api:
+    build:
+      context: ./services/core-api
+      dockerfile: Dockerfile
+    container_name: race-timing-core-api
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgres://race_user:race_password@database:5432/race_timing
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: your-jwt-secret-here
+      API_PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - database
+      - redis
+    volumes:
+      - ./services/core-api:/app
+      - /app/node_modules
+    networks:
+      - race-timing-network
+    restart: unless-stopped
+
+  # RFID Reader Service
+  rfid-reader:
+    build:
+      context: ./services/rfid-reader
+      dockerfile: Dockerfile
+    container_name: race-timing-rfid-reader
+    environment:
+      NODE_ENV: development
+      CORE_API_URL: http://core-api:3000
+      READER_IP: ${READER_IP:-192.168.1.100}
+      READER_PORT: ${READER_PORT:-5084}
+      API_PORT: 3001
+    ports:
+      - "3001:3001"
+    depends_on:
+      - core-api
+    volumes:
+      - ./services/rfid-reader:/app
+      - /app/node_modules
+    networks:
+      - race-timing-network
+    restart: unless-stopped
+
+  # Frontend (React)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: race-timing-frontend
+    environment:
+      REACT_APP_API_URL: http://localhost:3000
+      REACT_APP_WS_URL: ws://localhost:3000
+      PORT: 3002
+    ports:
+      - "3002:3002"
+    depends_on:
+      - core-api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    networks:
+      - race-timing-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  race-timing-network:
+    driver: bridge

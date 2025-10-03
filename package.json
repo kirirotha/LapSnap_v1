@@ -1,0 +1,49 @@
+{
+  "name": "race-timing-system",
+  "version": "1.0.0",
+  "description": "RFID Race Timing System - Complete monorepo solution",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend",
+    "shared"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run install:submodules",
+    "install:submodules": "cd services/core-api && npm install && cd ../rfid-reader && npm install",
+    "build": "npm run build:shared && npm run build:services && npm run build:frontend",
+    "build:shared": "cd shared && npm run build",
+    "build:services": "cd services/core-api && npm run build && cd ../rfid-reader && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:core-api\" \"npm run dev:rfid-reader\" \"npm run dev:frontend\"",
+    "dev:shared": "cd shared && npm run dev",
+    "dev:core-api": "cd services/core-api && npm run dev",
+    "dev:rfid-reader": "cd services/rfid-reader && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "start": "concurrently \"npm run start:core-api\" \"npm run start:rfid-reader\"",
+    "start:core-api": "cd services/core-api && npm start",
+    "start:rfid-reader": "cd services/rfid-reader && npm start",
+    "test": "npm run test:services && npm run test:frontend",
+    "test:services": "cd services/core-api && npm test && cd ../rfid-reader && npm test",
+    "test:frontend": "cd frontend && npm test",
+    "clean": "npm run clean:shared && npm run clean:services && npm run clean:frontend",
+    "clean:shared": "cd shared && npm run clean",
+    "clean:services": "cd services/core-api && npm run clean && cd ../rfid-reader && npm run clean",
+    "clean:frontend": "cd frontend && npm run clean",
+    "update:submodules": "git submodule update --remote"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url"
+  },
+  "author": "Your Name",
+  "license": "MIT"
+}

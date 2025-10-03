@@ -1,0 +1,6 @@
+[submodule "services/core-api"]
+	path = services/core-api
+	url = https://github.com/kirirotha/timer_v1_APIserver.git
+[submodule "services/rfid-reader"]
+	path = services/rfid-reader
+	url = https://github.com/kirirotha/timer_live_v1.git

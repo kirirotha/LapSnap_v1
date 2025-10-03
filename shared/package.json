@@ -1,0 +1,19 @@
+{
+  "name": "@race-timing/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for race timing system",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rimraf dist"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "rimraf": "^5.0.0"
+  },
+  "files": [
+    "dist"
+  ]
+}

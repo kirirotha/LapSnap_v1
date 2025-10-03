@@ -6,18 +6,18 @@ A comprehensive RFID-based race timing system built with Node.js, React, and Typ
 
 This monorepo contains:
 
-- **services/rfid-reader**: RFID reader service for capturing tag reads
-- **services/core-api**: Core API server for race management and data processing
-- **frontend**: React-based web interface for race management and live results
+- **services/rfid-reader**: RFID reader service for capturing tag reads (Git Submodule)
+- **services/core-api**: Core API server for race management and data processing (Git Submodule)
+- **frontend**: React TypeScript web interface for race management and live results
 - **shared**: Shared TypeScript types and utilities across all services
 
-## Prerequisites
+## Project Status
 
-- Node.js 18+ and npm 9+
-- PostgreSQL 15+
-- Redis 7+
-- Docker and Docker Compose (optional, for containerized development)
-- RFID Reader (compatible with LLRP protocol)
+✅ **Frontend**: Complete React TypeScript application with Material-UI  
+✅ **Shared Types**: TypeScript definitions for all data structures  
+✅ **Backend Services**: Integrated as Git submodules from existing repositories  
+✅ **Development Environment**: Docker Compose setup for local development  
+✅ **Workspace Management**: NPM workspace configuration for all packages  
 
 ## Quick Start
 
@@ -41,208 +41,160 @@ cp .env.example .env
 
 ```bash
 # Install all dependencies for the workspace
-npm run install:all
+npm install
+
+# Install submodule dependencies
+npm run install:submodules
 ```
 
-### 3. Database Setup
+### 3. Build Shared Types
 
 ```bash
-# Start PostgreSQL and Redis (using Docker)
+cd shared
+npm run build
+```
+
+### 4. Start Development
+
+#### Option A: Full Stack (requires backend setup)
+```bash
+# Start database and Redis
 docker-compose up -d database redis
 
-# Run database migrations
-cd services/core-api
-npm run migrate
-```
-
-### 4. Development
-
-```bash
-# Start all services in development mode
+# Start all services
 npm run dev
 ```
 
-This will start:
-- Core API on http://localhost:3000
-- RFID Reader service on http://localhost:3001
-- Frontend on http://localhost:3002
-
-### 5. Production Deployment
-
+#### Option B: Frontend Only (with mock data)
 ```bash
-# Build all services
-npm run build
-
-# Start production services
+cd frontend
 npm start
 ```
 
-## Services Overview
+Access the application at:
+- Frontend: http://localhost:3002
+- Core API: http://localhost:3000 (when running)
+- RFID Reader service: http://localhost:3001 (when running)
 
-### RFID Reader Service (`services/rfid-reader`)
+## Frontend Features
 
-Handles RFID tag reads and communicates with the core API:
+### Dashboard
+- System status monitoring with real-time indicators
+- Statistics overview (races, participants, tag reads)
+- Modern Material-UI design with responsive layout
 
-- LLRP protocol implementation for RFID readers
-- Real-time tag processing
-- Reader health monitoring
-- Event emission to core API
+### Race Management
+- Create and configure races (time-based, lap-based, unlimited)
+- Real-time race control (start, stop, pause, resume)
+- Edit race settings and view race status
 
-### Core API Service (`services/core-api`)
+### Live Results
+- Real-time participant standings and lap times
+- Best lap highlighting and position tracking
+- Export functionality (CSV, PDF, JSON)
+- WebSocket integration for instant updates
 
-Main backend service providing:
+### Technical Stack
+- **Frontend**: React 19 + TypeScript + Material-UI v7
+- **Backend Services**: Node.js with existing RFID integration
+- **Real-time**: Socket.IO for live updates
+- **Database**: PostgreSQL with Redis caching
+- **Types**: Shared TypeScript definitions
 
-- Race management APIs
-- Participant registration
-- Real-time result processing
-- WebSocket server for live updates
-- Database management
+## Development
 
-### Frontend (`frontend`)
+### Frontend Development
 
-React-based web interface for:
+```bash
+cd frontend
+npm start
+```
 
-- Race configuration and management
-- Live race monitoring
-- Participant registration
-- Results display and export
+The frontend runs with mock data and provides a complete UI for:
+- Race creation and management
+- Live results display
+- System monitoring dashboard
 
-### Shared (`shared`)
-
-Common TypeScript types and utilities:
-
-- Race, participant, and tag read interfaces
-- Event type definitions
-- API constants
-- Utility functions
-
-## Git Submodules
-
-The RFID reader and core API services are managed as git submodules:
+### Working with Submodules
 
 ```bash
 # Update submodules to latest
-npm run update:submodules
-
-# Pull changes from submodule repos
 git submodule update --remote
 
-# Push changes to submodule repos
+# Make changes in a submodule
 cd services/core-api
 git add .
 git commit -m "Your changes"
 git push origin main
+
+# Update main repo to track the new commit
+cd ../..
+git add services/core-api
+git commit -m "Update core-api submodule"
 ```
 
-## Configuration
+### Adding Backend Integration
 
-### Environment Variables
+When your backend services are running, update the API endpoints in:
+- `frontend/src/services/api.ts` - Base API configuration
+- `frontend/src/services/raceApi.ts` - Race-specific API calls
+- `frontend/src/services/socketService.ts` - WebSocket connection
 
-Key environment variables (see `.env.example`):
+## Repository Structure
 
-- `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
-- `READER_IP`: RFID reader IP address
-- `READER_PORT`: RFID reader port (usually 5084)
-- `JWT_SECRET`: Secret for JWT token signing
-
-### RFID Reader Setup
-
-1. Configure your RFID reader with a static IP
-2. Update `READER_IP` and `READER_PORT` in your `.env` file
-3. Ensure the reader supports LLRP protocol
-
-## API Documentation
-
-### Core API Endpoints
-
-- `GET /api/races` - List all races
-- `POST /api/races` - Create new race
-- `GET /api/races/:id` - Get race details
-- `POST /api/participants` - Register participant
-- `GET /api/results/:raceId` - Get race results
-
-### WebSocket Events
-
-- `race:update` - Race status changes
-- `participant:update` - Participant status changes
-- `lap:completed` - New lap completion
-- `tag:read` - Raw tag read events
-
-## Development
-
-### Adding New Features
-
-1. Define shared types in `shared/src/types/`
-2. Implement backend logic in `services/core-api/`
-3. Add RFID processing in `services/rfid-reader/` if needed
-4. Create frontend components in `frontend/src/`
-
-### Testing
-
-```bash
-# Run all tests
-npm test
-
-# Test specific service
-cd services/core-api && npm test
-cd services/rfid-reader && npm test
-cd frontend && npm test
+```
+race-timing-system/
+├── services/
+│   ├── core-api/           # Git submodule: timer_v1_APIserver
+│   └── rfid-reader/        # Git submodule: timer_live_v1
+├── frontend/               # React TypeScript application
+│   ├── src/
+│   │   ├── components/     # Reusable UI components
+│   │   ├── pages/          # Dashboard, Races, Results
+│   │   ├── services/       # API and WebSocket services
+│   │   └── App.tsx         # Main application
+│   ├── package.json
+│   └── .env               # Environment configuration
+├── shared/                 # Shared TypeScript types
+│   ├── src/types/         # Interface definitions
+│   └── constants.ts       # Shared constants
+├── package.json           # Workspace configuration
+├── docker-compose.yml     # Development environment
+└── README.md              # This file
 ```
 
-### Database Migrations
+## Environment Configuration
 
-```bash
-cd services/core-api
-npm run migrate:create migration-name
-npm run migrate:up
-npm run migrate:down
+Copy `.env.example` to `.env` and configure:
+
+```env
+# Database
+DATABASE_URL=postgres://race_user:race_password@localhost:5432/race_timing
+REDIS_URL=redis://localhost:6379
+
+# RFID Reader
+READER_IP=192.168.1.100
+READER_PORT=5084
+
+# API Endpoints
+API_PORT=3000
+RFID_READER_API_PORT=3001
 ```
-
-## Deployment
-
-### Docker Deployment
-
-```bash
-# Build and start all services
-docker-compose up -d
-
-# Scale services
-docker-compose up -d --scale core-api=2
-```
-
-### Manual Deployment
-
-1. Build shared types: `cd shared && npm run build`
-2. Build and deploy core API
-3. Build and deploy RFID reader service
-4. Build and serve frontend
-5. Configure reverse proxy (nginx/Apache)
-
-## Troubleshooting
-
-### Common Issues
-
-1. **RFID Reader Connection**: Check IP, port, and network connectivity
-2. **Database Connection**: Verify PostgreSQL is running and credentials are correct
-3. **Submodule Issues**: Run `git submodule update --init --recursive`
-4. **Port Conflicts**: Check if ports 3000-3002 are available
-
-### Logs
-
-- Core API logs: `cd services/core-api && npm run logs`
-- RFID Reader logs: `cd services/rfid-reader && npm run logs`
-- Frontend logs: Browser developer console
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch: `git checkout -b feature/new-feature`
 3. Make your changes
-4. Add tests if applicable
-5. Update documentation
-6. Submit a pull request
+4. Build and test: `npm run build && npm test`
+5. Commit your changes: `git commit -m "Add new feature"`
+6. Push to the branch: `git push origin feature/new-feature`
+7. Submit a pull request
 
 ## License
 
 MIT License - see LICENSE file for details.
+
+---
+
+**Built with ❤️ for the racing community**

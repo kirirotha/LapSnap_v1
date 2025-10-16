@@ -1,12 +1,12 @@
-# Race Timing System - Frontend
+# Getting Started with Create React App
 
-React TypeScript frontend for the RFID Race Timing System.
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## Features
+## Available Scripts
 
-- **Dashboard**: Overview of system status, active races, and real-time statistics
-- **Race Management**: Create, edit, start, stop, and monitor races
-- **Live Results**: Real-time participant results with lap times and positions
+In the project directory, you can run:
+
+### `npm start`
 
 Runs the app in the development mode.\
 Open [http://localhost:3000](http://localhost:3000) to view it in the browser.

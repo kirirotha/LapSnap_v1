@@ -1,17 +1,19 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
-const apiClient = axios.create({
+console.log('API Base URL configured:', API_BASE_URL);
+
+export const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true,
 });
 
-// Request interceptor for auth tokens
-apiClient.interceptors.request.use(
+// Request interceptor for adding auth token
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
     if (token) {
@@ -19,14 +21,17 @@ apiClient.interceptors.request.use(
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
+  }
 );
 
-// Response interceptor for error handling
-apiClient.interceptors.response.use(
+// Response interceptor for handling errors
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      // Handle unauthorized access
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }
@@ -34,4 +39,4 @@ apiClient.interceptors.response.use(
   }
 );
 
-export default apiClient;
+export default api;

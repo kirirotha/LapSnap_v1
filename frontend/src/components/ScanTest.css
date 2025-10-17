@@ -121,6 +121,56 @@
   cursor: not-allowed;
 }
 
+/* Power Control */
+.power-control {
+  margin-bottom: 1.5rem;
+}
+
+.power-control > label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.power-inputs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+
+.power-input-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.power-input-group label {
+  margin-bottom: 0;
+  min-width: 50px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.power-input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+.power-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.power-input:disabled {
+  background: #f5f5f5;
+  cursor: not-allowed;
+}
+
 .action-buttons {
   display: flex;
   gap: 1rem;

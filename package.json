@@ -15,7 +15,7 @@
     "build:shared": "cd shared && npm run build",
     "build:services": "cd services/core-api && npm run build && cd ../rfid-reader && npm run build",
     "build:frontend": "cd frontend && npm run build",
-    "dev": "concurrently \"npm run dev:shared\" \"npm run dev:core-api\" \"npm run dev:rfid-reader\" \"npm run dev:frontend\"",
+    "dev": "concurrently \"npm run dev:core-api\" \"npm run dev:frontend\"",
     "dev:shared": "cd shared && npm run dev",
     "dev:core-api": "cd services/core-api && npm run dev",
     "dev:rfid-reader": "cd services/rfid-reader && npm run dev",

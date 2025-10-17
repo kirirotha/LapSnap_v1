@@ -75,4 +75,9 @@ temp/
 /services/*/build/
 
 # Shared package builds
+# Shared package builds
 /shared/dist/
+
+# Local development docs (not tracked)
+DB_QUICK_START.md
+LOCAL_SETUP.md

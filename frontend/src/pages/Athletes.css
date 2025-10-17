@@ -1,0 +1,75 @@
+.athletes-page {
+  padding: 24px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.athletes-content {
+  flex: 1;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .athletes-page {
+    padding: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header button {
+    width: 100%;
+  }
+
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .table-toolbar > * {
+    width: 100%;
+  }
+}
+
+/* DataGrid custom styling */
+.athletes-content .MuiDataGrid-root {
+  border: none;
+}
+
+.athletes-content .MuiDataGrid-columnHeaders {
+  background-color: #f5f5f5;
+  border-radius: 4px 4px 0 0;
+}
+
+.athletes-content .MuiDataGrid-cell {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.athletes-content .MuiDataGrid-row:hover {
+  background-color: #fafafa;
+}

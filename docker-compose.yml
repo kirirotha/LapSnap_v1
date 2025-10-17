@@ -10,7 +10,7 @@ services:
       POSTGRES_USER: race_user
       POSTGRES_PASSWORD: race_password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./services/core-api/database/init:/docker-entrypoint-initdb.d

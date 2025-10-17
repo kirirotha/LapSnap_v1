@@ -22,20 +22,6 @@ export const Races: React.FC = () => {
           >
             Race Management
           </button>
-          <button
-            onClick={() => setActiveTab('scan')}
-            style={{
-              padding: '0.75rem 1.5rem',
-              border: 'none',
-              background: 'none',
-              borderBottom: activeTab === 'scan' ? '3px solid #007bff' : 'none',
-              color: activeTab === 'scan' ? '#007bff' : '#666',
-              fontWeight: activeTab === 'scan' ? 600 : 400,
-              cursor: 'pointer'
-            }}
-          >
-            Scan Test
-          </button>
         </div>
       </div>
 
@@ -48,7 +34,7 @@ export const Races: React.FC = () => {
           </button>
         </div>
       ) : (
-        <ScanTest />
+        <h2>Add Other race stuff here</h2>
       )}
     </div>
   );

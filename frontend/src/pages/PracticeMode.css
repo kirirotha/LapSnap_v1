@@ -1,0 +1,84 @@
+.practice-mode-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.practice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.practice-header h1 {
+  margin: 0;
+  color: #1976d2;
+}
+
+.practice-section {
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.practice-section h6 {
+  margin-bottom: 16px;
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+/* DataGrid styling */
+.practice-section .MuiDataGrid-root {
+  border: none;
+  font-family: 'Roboto', sans-serif;
+}
+
+.practice-section .MuiDataGrid-columnHeaders {
+  background-color: #f5f5f5;
+  border-bottom: 2px solid #1976d2;
+}
+
+.practice-section .MuiDataGrid-columnHeaderTitle {
+  font-weight: 600;
+  color: #333;
+}
+
+.practice-section .MuiDataGrid-row:hover {
+  background-color: #f0f7ff;
+}
+
+.practice-section .MuiDataGrid-row.Mui-selected {
+  background-color: #e3f2fd;
+}
+
+/* Empty state */
+.practice-section .MuiDataGrid-overlay {
+  background-color: #fafafa;
+}
+
+/* Status chips */
+.MuiChip-root {
+  font-weight: 500;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .practice-mode-container {
+    padding: 16px;
+  }
+
+  .practice-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .practice-section {
+    padding: 16px;
+  }
+}

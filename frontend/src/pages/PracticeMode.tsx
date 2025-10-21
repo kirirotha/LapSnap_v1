@@ -372,6 +372,7 @@ export const PracticeMode: React.FC = () => {
         open={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         onStart={handleStart}
+        initialSettings={currentSettings || undefined}
       />
 
       <Snackbar

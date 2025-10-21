@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
-  IconButton,
   Typography,
   Paper,
   TextField,
@@ -18,7 +17,6 @@ import {
   GridRowParams,
 } from '@mui/x-data-grid';
 import {
-  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Search as SearchIcon,
@@ -45,7 +43,7 @@ export const Athletes: React.FC = () => {
   });
 
   // Load athletes
-  const loadAthletes = async () => {
+  const loadAthletes = useCallback(async () => {
     try {
       setLoading(true);
       const data = await athleteApi.getAll();
@@ -56,11 +54,11 @@ export const Athletes: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadAthletes();
-  }, []);
+  }, [loadAthletes]);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info') => {
     setSnackbar({ open: true, message, severity });

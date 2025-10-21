@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -43,7 +43,7 @@ export const Participants: React.FC = () => {
   });
 
   // Load participants
-  const loadParticipants = async () => {
+  const loadParticipants = useCallback(async () => {
     try {
       setLoading(true);
       const data = await participantApi.getAll();
@@ -54,11 +54,11 @@ export const Participants: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadParticipants();
-  }, []);
+  }, [loadParticipants]);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' | 'info') => {
     setSnackbar({ open: true, message, severity });

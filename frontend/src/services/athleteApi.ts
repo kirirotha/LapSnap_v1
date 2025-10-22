@@ -34,6 +34,10 @@ export interface Athlete {
   marketingOptIn: boolean;
   privacyLevel: 'PUBLIC' | 'REGISTERED_USERS_ONLY' | 'ORGANIZERS_ONLY' | 'PRIVATE';
   defaultTagId?: string;
+  rfid_tags?: {
+    id: string;
+    tagId: string;
+  };
   notes?: string;
   createdAt: string;
   updatedAt: string;
@@ -62,6 +66,7 @@ export interface CreateAthleteDto {
   clubMembership?: string;
   marketingOptIn?: boolean;
   privacyLevel?: 'PUBLIC' | 'REGISTERED_USERS_ONLY' | 'ORGANIZERS_ONLY' | 'PRIVATE';
+  defaultTagId?: string;
   notes?: string;
 }
 
@@ -98,6 +103,13 @@ export const athleteApi = {
   // Search athletes
   search: async (query: string): Promise<Athlete[]> => {
     const response = await api.get(`/athletes/search?q=${encodeURIComponent(query)}`);
+    return response.data;
+  },
+
+  // Check tag ownership
+  checkTagOwnership: async (tagId: string, excludeAthleteId?: string): Promise<{ owner: { id: string; firstName: string; lastName: string } | null }> => {
+    const params = excludeAthleteId ? `?excludeAthleteId=${excludeAthleteId}` : '';
+    const response = await api.get(`/athletes/tag-ownership/${encodeURIComponent(tagId)}${params}`);
     return response.data;
   },
 };

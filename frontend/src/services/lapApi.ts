@@ -4,6 +4,7 @@ export interface Lap {
   id: string;
   eventId: string;
   participantId?: string;
+  athleteId?: string;
   tagId: string;
   checkpointId: string;
   lapNumber: number;
@@ -30,6 +31,11 @@ export interface Lap {
     lastName: string;
     bibNumber: string;
   };
+  athletes?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+  };
   checkpoints?: {
     id: string;
     name: string;
@@ -37,6 +43,11 @@ export interface Lap {
   rfid_tags?: {
     id: string;
     tagId: string;
+    athletes?: Array<{
+      id: string;
+      firstName: string;
+      lastName: string;
+    }>;
   };
 }
 

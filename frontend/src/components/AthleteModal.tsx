@@ -18,9 +18,22 @@ import {
   Tab,
   Divider,
   Stack,
+  Paper,
+  IconButton,
+  Tooltip,
+  InputAdornment,
+  DialogContentText,
+  Alert,
 } from '@mui/material';
-import { Save as SaveIcon, Close as CloseIcon } from '@mui/icons-material';
+import { 
+  Save as SaveIcon, 
+  Close as CloseIcon,
+  QrCodeScanner as ScanIcon,
+  Warning as WarningIcon,
+} from '@mui/icons-material';
 import { Athlete, CreateAthleteDto } from '../services/athleteApi';
+import { TagScanDialog } from './TagScanDialog';
+import { athleteApi } from '../services/athleteApi';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -57,6 +70,10 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
   athlete,
 }) => {
   const [tabValue, setTabValue] = useState(0);
+  const [scanDialogOpen, setScanDialogOpen] = useState(false);
+  const [reassignConfirmOpen, setReassignConfirmOpen] = useState(false);
+  const [currentTagOwner, setCurrentTagOwner] = useState<{ firstName: string; lastName: string } | null>(null);
+  const [pendingFormData, setPendingFormData] = useState<CreateAthleteDto | null>(null);
   const [formData, setFormData] = useState<CreateAthleteDto>({
     firstName: '',
     lastName: '',
@@ -80,6 +97,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
     marketingOptIn: false,
     privacyLevel: 'PUBLIC',
     notes: '',
+    defaultTagId: '',
   });
 
   useEffect(() => {
@@ -107,6 +125,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
         marketingOptIn: athlete.marketingOptIn,
         privacyLevel: athlete.privacyLevel,
         notes: athlete.notes || '',
+        defaultTagId: athlete.rfid_tags?.tagId || '',
       });
     } else {
       // Reset form for new athlete
@@ -133,6 +152,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
         marketingOptIn: false,
         privacyLevel: 'PUBLIC',
         notes: '',
+        defaultTagId: '',
       });
     }
     setTabValue(0);
@@ -145,7 +165,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
     setFormData({ ...formData, [field]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Clean up empty strings
@@ -156,14 +176,56 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
       }
     });
 
+    // Check if a tag is being assigned and if it's already owned by another athlete
+    if (cleanedData.defaultTagId) {
+      try {
+        const response = await athleteApi.checkTagOwnership(
+          cleanedData.defaultTagId,
+          athlete?.id
+        );
+        
+        if (response.owner) {
+          // Tag is owned by another athlete, show confirmation dialog
+          setCurrentTagOwner(response.owner);
+          setPendingFormData(cleanedData);
+          setReassignConfirmOpen(true);
+          return;
+        }
+      } catch (error) {
+        console.error('Error checking tag ownership:', error);
+        // Continue with save if check fails
+      }
+    }
+
+    // No conflict, save directly
     onSave(cleanedData);
+  };
+
+  const handleConfirmReassign = () => {
+    setReassignConfirmOpen(false);
+    if (pendingFormData) {
+      onSave(pendingFormData);
+      setPendingFormData(null);
+      setCurrentTagOwner(null);
+    }
+  };
+
+  const handleCancelReassign = () => {
+    setReassignConfirmOpen(false);
+    setPendingFormData(null);
+    setCurrentTagOwner(null);
   };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
   };
 
+  const handleTagScanned = (tagId: string) => {
+    setFormData({ ...formData, defaultTagId: tagId });
+  };
+
   return (
+    <>
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <form onSubmit={handleSubmit}>
         <DialogTitle>
@@ -238,6 +300,40 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
                   </Select>
                 </FormControl>
               </Stack>
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* RFID Tag Assignment Section */}
+              <Box>
+                <Typography variant="subtitle2" gutterBottom fontWeight="600">
+                  RFID Tag Assignment
+                </Typography>
+                <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
+                  <TextField
+                    fullWidth
+                    label="RFID Tag ID"
+                    value={formData.defaultTagId}
+                    onChange={handleChange('defaultTagId')}
+                    placeholder="Scan or enter tag ID manually"
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <Tooltip title="Scan RFID Tag">
+                            <IconButton
+                              onClick={() => setScanDialogOpen(true)}
+                              color="primary"
+                              edge="end"
+                            >
+                              <ScanIcon />
+                            </IconButton>
+                          </Tooltip>
+                        </InputAdornment>
+                      ),
+                    }}
+                    helperText="Assign an RFID tag to this athlete for automatic timing"
+                  />
+                </Paper>
+              </Box>
             </Stack>
           </TabPanel>
 
@@ -413,5 +509,53 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
         </DialogActions>
       </form>
     </Dialog>
+
+    {/* Tag Scan Dialog */}
+    <TagScanDialog
+      open={scanDialogOpen}
+      onClose={() => setScanDialogOpen(false)}
+      onTagSelected={handleTagScanned}
+      currentTagId={formData.defaultTagId}
+    />
+
+    {/* Tag Reassignment Confirmation Dialog */}
+    <Dialog
+      open={reassignConfirmOpen}
+      onClose={handleCancelReassign}
+      aria-labelledby="reassign-dialog-title"
+      aria-describedby="reassign-dialog-description"
+    >
+      <DialogTitle id="reassign-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <WarningIcon color="warning" />
+        Reassign RFID Tag?
+      </DialogTitle>
+      <DialogContent>
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          This tag is currently assigned to another athlete
+        </Alert>
+        <DialogContentText id="reassign-dialog-description">
+          {currentTagOwner && (
+            <>
+              The tag <strong>{pendingFormData?.defaultTagId}</strong> is currently assigned to{' '}
+              <strong>{currentTagOwner.firstName} {currentTagOwner.lastName}</strong>.
+              <br /><br />
+              If you continue, the tag will be unassigned from {currentTagOwner.firstName} and 
+              assigned to {formData.firstName || 'this athlete'}.
+              <br /><br />
+              Do you want to proceed with this reassignment?
+            </>
+          )}
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleCancelReassign} color="inherit">
+          Cancel
+        </Button>
+        <Button onClick={handleConfirmReassign} color="warning" variant="contained" autoFocus>
+          Reassign Tag
+        </Button>
+      </DialogActions>
+    </Dialog>
+    </>
   );
 };

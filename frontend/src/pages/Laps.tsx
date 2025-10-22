@@ -13,6 +13,11 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   DataGrid,
@@ -37,6 +42,8 @@ export const Laps: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [validFilter, setValidFilter] = useState<string>('all');
   const [processedFilter, setProcessedFilter] = useState<string>('all');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [lapToDelete, setLapToDelete] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -73,10 +80,15 @@ export const Laps: React.FC = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const handleDeleteClick = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this lap record?')) {
+  const handleDeleteClick = (id: string) => {
+    setLapToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (lapToDelete) {
       try {
-        await lapApi.delete(id);
+        await lapApi.delete(lapToDelete);
         showSnackbar('Lap deleted successfully', 'success');
         loadLaps();
       } catch (error) {
@@ -84,6 +96,13 @@ export const Laps: React.FC = () => {
         showSnackbar('Failed to delete lap', 'error');
       }
     }
+    setDeleteConfirmOpen(false);
+    setLapToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setLapToDelete(null);
   };
 
   const handleToggleValid = async (lap: Lap) => {
@@ -125,12 +144,17 @@ export const Laps: React.FC = () => {
       align: 'center',
     },
     {
-      field: 'participantName',
-      headerName: 'Participant',
-      width: 180,
+      field: 'athleteName',
+      headerName: 'Athlete',
+      width: 200,
       valueGetter: (params, row) => {
+        // Use the captured athlete from the lap (athleteId relation)
+        if (row.athletes) {
+          return `${row.athletes.firstName} ${row.athletes.lastName}`;
+        }
+        // Fallback to participant if no athlete was captured
         if (row.participants) {
-          return `#${row.participants.bibNumber} - ${row.participants.firstName} ${row.participants.lastName}`;
+          return `${row.participants.firstName} ${row.participants.lastName}`;
         }
         return 'Unassigned';
       },
@@ -140,12 +164,6 @@ export const Laps: React.FC = () => {
       headerName: 'Event',
       width: 180,
       valueGetter: (params, row) => row.events?.name || '-',
-    },
-    {
-      field: 'checkpointName',
-      headerName: 'Checkpoint',
-      width: 150,
-      valueGetter: (params, row) => row.checkpoints?.name || '-',
     },
     {
       field: 'tagId',
@@ -379,6 +397,31 @@ export const Laps: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Lap Record?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this lap record? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

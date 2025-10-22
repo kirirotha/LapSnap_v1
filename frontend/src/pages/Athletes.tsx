@@ -9,6 +9,11 @@ import {
   Chip,
   Alert,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   DataGrid,
@@ -32,6 +37,8 @@ export const Athletes: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [athleteToDelete, setAthleteToDelete] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -78,10 +85,15 @@ export const Athletes: React.FC = () => {
     setModalOpen(true);
   };
 
-  const handleDeleteClick = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this athlete?')) {
+  const handleDeleteClick = (id: string) => {
+    setAthleteToDelete(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (athleteToDelete) {
       try {
-        await athleteApi.delete(id);
+        await athleteApi.delete(athleteToDelete);
         showSnackbar('Athlete deleted successfully', 'success');
         loadAthletes();
       } catch (error) {
@@ -89,6 +101,13 @@ export const Athletes: React.FC = () => {
         showSnackbar('Failed to delete athlete', 'error');
       }
     }
+    setDeleteConfirmOpen(false);
+    setAthleteToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteConfirmOpen(false);
+    setAthleteToDelete(null);
   };
 
   const handleModalClose = () => {
@@ -121,27 +140,23 @@ export const Athletes: React.FC = () => {
       valueGetter: (params, row) => `${row.firstName} ${row.lastName}`,
     },
     {
-      field: 'email',
-      headerName: 'Email',
-      width: 220,
-      renderCell: (params) => params.value || '-',
-    },
-    {
-      field: 'phone',
-      headerName: 'Phone',
-      width: 150,
-      renderCell: (params) => params.value || '-',
+      field: 'dateOfBirth',
+      headerName: 'Birth Date',
+      width: 130,
+      renderCell: (params) => {
+        if (!params.value) return '-';
+        const date = new Date(params.value);
+        return date.toLocaleDateString('en-US', { 
+          year: 'numeric', 
+          month: 'short', 
+          day: 'numeric' 
+        });
+      },
     },
     {
       field: 'gender',
       headerName: 'Gender',
       width: 100,
-      renderCell: (params) => params.value || '-',
-    },
-    {
-      field: 'city',
-      headerName: 'City',
-      width: 150,
       renderCell: (params) => params.value || '-',
     },
     {
@@ -188,8 +203,7 @@ export const Athletes: React.FC = () => {
     return (
       athlete.firstName.toLowerCase().includes(searchLower) ||
       athlete.lastName.toLowerCase().includes(searchLower) ||
-      athlete.email?.toLowerCase().includes(searchLower) ||
-      athlete.phone?.includes(searchQuery)
+      athlete.teamAffiliation?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -278,6 +292,31 @@ export const Athletes: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirmOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="delete-dialog-title"
+        aria-describedby="delete-dialog-description"
+      >
+        <DialogTitle id="delete-dialog-title">
+          Delete Athlete?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="delete-dialog-description">
+            Are you sure you want to delete this athlete? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="inherit">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

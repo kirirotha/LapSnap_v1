@@ -9,6 +9,8 @@ import {
   Alert,
   Snackbar,
   Stack,
+  Backdrop,
+  CircularProgress,
 } from '@mui/material';
 import {
   PlayArrow,
@@ -62,6 +64,8 @@ SmoothElapsedTime.displayName = 'SmoothElapsedTime';
 export const PracticeMode: React.FC = () => {
   const socketRef = useRef<Socket | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [activeLaps, setActiveLaps] = useState<ActiveLap[]>([]);
   const [completedLaps, setCompletedLaps] = useState<CompletedLap[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -141,12 +145,13 @@ export const PracticeMode: React.FC = () => {
 
   const handleStart = async (settings: PracticeSessionSettings) => {
     try {
+      setLoading(true);
+      setLoadingMessage('Initializing RFID scanner...');
+      
       const session = await practiceApi.startSession(settings);
       setSessionId(session.event.id);
       setCurrentSettings(settings);
-      setIsScanning(true);
       setError('');
-      setSuccess('Practice session started!');
 
       // Start RFID scanning with antenna configuration
       const antennas = settings.antennas
@@ -160,32 +165,46 @@ export const PracticeMode: React.FC = () => {
           power[a.antennaNumber] = a.powerLevel;
         });
 
+      setLoadingMessage('Configuring antennas and power levels...');
+      
       // Start RFID scanner
       await fetch('http://localhost:3000/api/rfid/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ antennas, power }),
       });
+
+      setIsScanning(true);
+      setLoading(false);
+      setSuccess('Practice session started!');
     } catch (err: any) {
+      setLoading(false);
       setError(err.response?.data?.error || err.message || 'Failed to start session');
     }
   };
 
   const handleStop = async () => {
     try {
+      setLoading(true);
+      setLoadingMessage('Stopping RFID scanner...');
+      
       // Stop RFID scanning
       await fetch('http://localhost:3000/api/rfid/stop', {
         method: 'POST',
       });
 
+      setLoadingMessage('Ending practice session...');
+      
       // Stop practice session
       await practiceApi.stopSession();
       setIsScanning(false);
       setActiveLaps([]);
       setSessionId(null);
       setCurrentSettings(null);
+      setLoading(false);
       setSuccess('Practice session stopped!');
     } catch (err: any) {
+      setLoading(false);
       setError(err.response?.data?.error || err.message || 'Failed to stop session');
     }
   };
@@ -396,6 +415,22 @@ export const PracticeMode: React.FC = () => {
           {error}
         </Alert>
       </Snackbar>
+
+      {/* Loading Overlay */}
+      <Backdrop
+        sx={{ 
+          color: '#fff', 
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          flexDirection: 'column',
+          gap: 2,
+        }}
+        open={loading}
+      >
+        <CircularProgress color="inherit" size={60} />
+        <Typography variant="h6" sx={{ mt: 2 }}>
+          {loadingMessage}
+        </Typography>
+      </Backdrop>
     </Box>
   );
 };

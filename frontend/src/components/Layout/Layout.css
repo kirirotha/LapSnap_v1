@@ -2,10 +2,15 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 .nav {
-  background-color: #282c34;
+  background-color: rgba(40, 44, 52, 0.7);
+  backdrop-filter: blur(10px);
   padding: 1rem 2rem;
   color: white;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -21,17 +26,24 @@
   margin-bottom: 1rem;
 }
 
+.header-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .nav h1 {
   margin: 0;
   font-size: 1.5rem;
 }
 
-.fullscreen-button {
-  margin-left: auto;
+.fullscreen-button,
+.dark-mode-button {
   transition: transform 0.2s ease;
 }
 
-.fullscreen-button:hover {
+.fullscreen-button:hover,
+.dark-mode-button:hover {
   transform: scale(1.1);
 }
 
@@ -59,7 +71,8 @@
 .main-content {
   flex: 1;
   padding: 2rem;
-  background-color: #f5f5f5;
+  background-color: rgba(245, 245, 245, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 /* Fullscreen styles */
@@ -76,6 +89,28 @@
 :-ms-fullscreen .main-content {
   padding: 1rem;
   overflow-y: auto;
+}
+
+/* Dark Mode Styles */
+.dark-mode .nav {
+  background-color: rgba(18, 18, 18, 0.8);
+  color: white;
+}
+
+.dark-mode .main-content {
+  background-color: rgba(18, 18, 18, 0.4);
+}
+
+.dark-mode .nav a {
+  color: #90caf9;
+}
+
+.dark-mode .nav a:hover {
+  color: #64b5f6;
+}
+
+.dark-mode .nav h1 {
+  color: white;
 }
 
 /* Responsive design */

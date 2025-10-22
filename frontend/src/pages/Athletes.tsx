@@ -136,7 +136,8 @@ export const Athletes: React.FC = () => {
     {
       field: 'fullName',
       headerName: 'Name',
-      width: 200,
+      flex: 1,
+      minWidth: 150,
       valueGetter: (params, row) => `${row.firstName} ${row.lastName}`,
     },
     {
@@ -162,7 +163,8 @@ export const Athletes: React.FC = () => {
     {
       field: 'teamAffiliation',
       headerName: 'Team',
-      width: 150,
+      flex: 1,
+      minWidth: 120,
       renderCell: (params) => params.value || '-',
     },
     {
@@ -286,7 +288,7 @@ export const Athletes: React.FC = () => {
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
           {snackbar.message}

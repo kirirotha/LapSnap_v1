@@ -11,3 +11,167 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Global translucency for all MUI Paper components */
+.MuiPaper-root {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Translucent cards and sections */
+.MuiCard-root {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Translucent tables */
+.MuiDataGrid-root {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* Translucent modals and dialogs */
+.MuiDialog-paper {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(15px);
+}
+
+/* Translucent autocomplete dropdowns */
+.MuiAutocomplete-paper {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Translucent menus */
+.MuiMenu-paper {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(10px);
+}
+
+/* Dark Mode Global Styles */
+.dark-mode .MuiPaper-root {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiCard-root {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiDataGrid-root {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiDataGrid-columnHeaders {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiDataGrid-columnHeader {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+}
+
+.dark-mode .MuiDataGrid-columnHeaderTitle {
+  color: #e0e0e0 !important;
+  font-weight: 600 !important;
+}
+
+.dark-mode .MuiDataGrid-columnSeparator {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .MuiDataGrid-iconButtonContainer button {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiDataGrid-menuIcon button {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiDataGrid-sortIcon {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiDataGrid-cell {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiDataGrid-row {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .MuiDataGrid-row .MuiDataGrid-cell {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .MuiDataGrid-row:hover {
+  background-color: rgba(50, 50, 50, 0.6) !important;
+}
+
+.dark-mode .MuiDataGrid-footerContainer {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+  color: #e0e0e0 !important;
+  border-top-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .MuiTablePagination-root {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiTablePagination-selectLabel,
+.dark-mode .MuiTablePagination-displayedRows {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiTablePagination-select {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiTablePagination-actions button {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiIconButton-root {
+  color: #e0e0e0 !important;
+}
+
+.dark-mode .MuiDialog-paper {
+  background-color: rgba(40, 40, 40, 0.9) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiAutocomplete-paper {
+  background-color: rgba(40, 40, 40, 0.9) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiMenu-paper {
+  background-color: rgba(40, 40, 40, 0.9) !important;
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiTypography-root {
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiInputBase-root {
+  color: #e0e0e0;
+}
+
+.dark-mode .MuiOutlinedInput-notchedOutline {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .MuiInputLabel-root {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.dark-mode .MuiTableCell-root {
+  color: #e0e0e0 !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+

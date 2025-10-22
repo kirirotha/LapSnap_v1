@@ -1,15 +1,26 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import { IconButton, Tooltip } from '@mui/material';
-import { Fullscreen, FullscreenExit } from '@mui/icons-material';
+import { Fullscreen, FullscreenExit, Brightness4, Brightness7 } from '@mui/icons-material';
 import './Layout.css';
+import backgroundImage from '../../images/PT1.jpg';
 
-interface LayoutProps {
-  children: React.ReactNode;
-}
-
-export const Layout: React.FC<LayoutProps> = ({ children }) => {
+export const Layout: React.FC = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  const toggleDarkMode = useCallback(() => {
+    setIsDarkMode(prev => {
+      const newMode = !prev;
+      // Apply dark mode class to document root
+      if (newMode) {
+        document.documentElement.classList.add('dark-mode');
+      } else {
+        document.documentElement.classList.remove('dark-mode');
+      }
+      return newMode;
+    });
+  }, []);
 
   const toggleFullscreen = useCallback(async () => {
     try {
@@ -74,25 +85,42 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
   }, [toggleFullscreen]);
 
   return (
-    <div className="layout">
+    <div className="layout" style={{ backgroundImage: `url(${backgroundImage})` }}>
       <nav className="nav">
         <div className="nav-header">
-          <h1>LapSnap Race Timing</h1>
-          <Tooltip title={isFullscreen ? 'Exit Fullscreen (F11)' : 'Enter Fullscreen (F11)'}>
-            <IconButton
-              onClick={toggleFullscreen}
-              className="fullscreen-button"
-              size="large"
-              sx={{
-                color: '#61dafb',
-                '&:hover': {
-                  backgroundColor: 'rgba(97, 218, 251, 0.1)',
-                },
-              }}
-            >
-              {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
-            </IconButton>
-          </Tooltip>
+          <h1>SnapLaps Race Timing</h1>
+          <div className="header-buttons">
+            <Tooltip title={isDarkMode ? 'Light Mode' : 'Dark Mode'}>
+              <IconButton
+                onClick={toggleDarkMode}
+                className="dark-mode-button"
+                size="large"
+                sx={{
+                  color: '#61dafb',
+                  '&:hover': {
+                    backgroundColor: 'rgba(97, 218, 251, 0.1)',
+                  },
+                }}
+              >
+                {isDarkMode ? <Brightness7 /> : <Brightness4 />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={isFullscreen ? 'Exit Fullscreen (F11)' : 'Enter Fullscreen (F11)'}>
+              <IconButton
+                onClick={toggleFullscreen}
+                className="fullscreen-button"
+                size="large"
+                sx={{
+                  color: '#61dafb',
+                  '&:hover': {
+                    backgroundColor: 'rgba(97, 218, 251, 0.1)',
+                  },
+                }}
+              >
+                {isFullscreen ? <FullscreenExit /> : <Fullscreen />}
+              </IconButton>
+            </Tooltip>
+          </div>
         </div>
         <ul>
           <li><Link to="/dashboard">Dashboard</Link></li>
@@ -106,7 +134,7 @@ export const Layout: React.FC<LayoutProps> = ({ children }) => {
         </ul>
       </nav>
       <main className="main-content">
-        {children}
+        <Outlet />
       </main>
     </div>
   );

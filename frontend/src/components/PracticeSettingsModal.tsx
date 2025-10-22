@@ -468,7 +468,7 @@ const PracticeSettingsModal: React.FC<Props> = ({ open, onClose, onStart, initia
       open={snackbar.open}
       autoHideDuration={3000}
       onClose={() => setSnackbar({ ...snackbar, open: false })}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
     >
       <Alert
         onClose={() => setSnackbar({ ...snackbar, open: false })}

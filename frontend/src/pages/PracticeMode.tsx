@@ -11,17 +11,24 @@ import {
   Stack,
   Backdrop,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from '@mui/material';
 import {
   PlayArrow,
   Stop,
   Settings as SettingsIcon,
   Timer as TimerIcon,
+  Warning as WarningIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import PracticeSettingsModal from '../components/PracticeSettingsModal';
 import { practiceApi, ActiveLap, CompletedLap, PracticeSessionSettings } from '../services/practiceApi';
 import { io, Socket } from 'socket.io-client';
+import { useNavigate, useBlocker } from 'react-router-dom';
 import './PracticeMode.css';
 
 // Smooth elapsed time display using requestAnimationFrame
@@ -63,6 +70,7 @@ SmoothElapsedTime.displayName = 'SmoothElapsedTime';
 
 export const PracticeMode: React.FC = () => {
   const socketRef = useRef<Socket | null>(null);
+  const navigate = useNavigate();
   const [isScanning, setIsScanning] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -70,9 +78,27 @@ export const PracticeMode: React.FC = () => {
   const [completedLaps, setCompletedLaps] = useState<CompletedLap[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
+  const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [currentSettings, setCurrentSettings] = useState<PracticeSessionSettings | null>(null);
+
+  // Block navigation if scanning is active
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isScanning && currentLocation.pathname !== nextLocation.pathname
+  );
+
+  // Handle navigation blocking
+  useEffect(() => {
+    if (blocker.state === 'blocked') {
+      setNavigationDialogOpen(true);
+      setPendingNavigation(() => () => {
+        blocker.proceed?.();
+      });
+    }
+  }, [blocker]);
 
   // Socket.IO connection for real-time lap updates
   useEffect(() => {
@@ -209,6 +235,34 @@ export const PracticeMode: React.FC = () => {
     }
   };
 
+  const handleConfirmNavigation = async () => {
+    setNavigationDialogOpen(false);
+    
+    try {
+      // Stop the session
+      await handleStop();
+      
+      // Proceed with navigation after stopping
+      if (pendingNavigation) {
+        pendingNavigation();
+        setPendingNavigation(null);
+      }
+    } catch (err) {
+      console.error('Error stopping session during navigation:', err);
+      // Still allow navigation even if stop fails
+      if (pendingNavigation) {
+        pendingNavigation();
+        setPendingNavigation(null);
+      }
+    }
+  };
+
+  const handleCancelNavigation = () => {
+    setNavigationDialogOpen(false);
+    setPendingNavigation(null);
+    blocker.reset?.();
+  };
+
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -228,8 +282,9 @@ export const PracticeMode: React.FC = () => {
     },
     { 
       field: 'tagEpc', 
-      headerName: 'Tag EPC', 
-      width: 200,
+      headerName: 'Tag EPC',
+      flex: 1,
+      minWidth: 180,
       renderCell: (params) => (
         <Box sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
           {params.value}
@@ -239,7 +294,8 @@ export const PracticeMode: React.FC = () => {
     {
       field: 'athlete',
       headerName: 'Athlete',
-      width: 180,
+      flex: 1,
+      minWidth: 150,
       valueGetter: (value, row) =>
         row.athlete
           ? `${row.athlete.firstName} ${row.athlete.lastName}`
@@ -270,8 +326,9 @@ export const PracticeMode: React.FC = () => {
     { field: 'lapNumber', headerName: 'Lap #', width: 80, align: 'center' },
     { 
       field: 'tagEpc', 
-      headerName: 'Tag EPC', 
-      width: 220,
+      headerName: 'Tag EPC',
+      flex: 1,
+      minWidth: 180,
       renderCell: (params) => (
         <Box sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
           {params.value}
@@ -281,7 +338,8 @@ export const PracticeMode: React.FC = () => {
     {
       field: 'athlete',
       headerName: 'Athlete',
-      width: 200,
+      flex: 1,
+      minWidth: 150,
       valueGetter: (value, row) =>
         row.athlete
           ? `${row.athlete.firstName} ${row.athlete.lastName}`
@@ -398,7 +456,7 @@ export const PracticeMode: React.FC = () => {
         open={!!success}
         autoHideDuration={3000}
         onClose={() => setSuccess('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="success" onClose={() => setSuccess('')}>
           {success}
@@ -409,7 +467,7 @@ export const PracticeMode: React.FC = () => {
         open={!!error}
         autoHideDuration={5000}
         onClose={() => setError('')}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       >
         <Alert severity="error" onClose={() => setError('')}>
           {error}
@@ -431,6 +489,38 @@ export const PracticeMode: React.FC = () => {
           {loadingMessage}
         </Typography>
       </Backdrop>
+
+      {/* Navigation Confirmation Dialog */}
+      <Dialog
+        open={navigationDialogOpen}
+        onClose={handleCancelNavigation}
+        aria-labelledby="navigation-dialog-title"
+        aria-describedby="navigation-dialog-description"
+      >
+        <DialogTitle id="navigation-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon color="warning" />
+          End Practice Session?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="navigation-dialog-description">
+            You have an active practice session running. Leaving this page will stop the RFID scanner and end your session.
+            <br /><br />
+            <strong>Active Laps:</strong> {activeLaps.length}
+            <br />
+            <strong>Completed Laps:</strong> {completedLaps.length}
+            <br /><br />
+            Do you want to end the session and leave?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelNavigation} color="inherit">
+            Stay on Page
+          </Button>
+          <Button onClick={handleConfirmNavigation} color="warning" variant="contained" autoFocus>
+            End Session & Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

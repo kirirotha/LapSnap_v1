@@ -16,7 +16,8 @@
 
 /* Status Panel */
 .status-panel {
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -71,7 +72,8 @@
 
 /* Controls Panel */
 .controls-panel {
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -98,7 +100,8 @@
 .antenna-btn {
   padding: 0.5rem 1rem;
   border: 2px solid #ddd;
-  background: white;
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(8px);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
@@ -221,7 +224,8 @@
 
 /* Reads Panel */
 .reads-panel {
-  background: white;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
   padding: 1.5rem;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -318,4 +322,36 @@
   .btn {
     width: 100%;
   }
+}
+
+/* Dark Mode */
+.dark-mode .scan-test h2,
+.dark-mode .scan-test h3 {
+  color: #e0e0e0;
+}
+
+.dark-mode .status-panel,
+.dark-mode .controls-panel,
+.dark-mode .reads-panel {
+  background: rgba(30, 30, 30, 0.8);
+}
+
+.dark-mode .status-item .label {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.dark-mode .status-item .value {
+  color: #e0e0e0;
+}
+
+.dark-mode .antenna-btn {
+  background: rgba(50, 50, 50, 0.8);
+  color: #e0e0e0;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark-mode .antenna-btn.selected {
+  background: rgba(25, 118, 210, 0.5);
+  border-color: #90caf9;
+  color: #90caf9;
 }

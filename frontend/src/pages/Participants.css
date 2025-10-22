@@ -41,3 +41,42 @@
     align-items: flex-start;
   }
 }
+
+/* Dark Mode */
+.dark-mode .participants-content .MuiDataGrid-root {
+  background-color: rgba(30, 30, 30, 0.7);
+}
+
+.dark-mode .participants-content .MuiDataGrid-columnHeaders {
+  background-color: rgba(0, 0, 0, 0.95);
+}
+
+.dark-mode .participants-content .MuiDataGrid-columnHeader {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+}
+
+.dark-mode .participants-content .MuiDataGrid-columnHeaderTitle {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+.dark-mode .participants-content .MuiDataGrid-row:hover {
+  background-color: rgba(50, 50, 50, 0.7);
+}
+
+.dark-mode .participants-content .MuiDataGrid-cell {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .participants-content .MuiDataGrid-row {
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .participants-content .MuiDataGrid-row .MuiDataGrid-cell {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
+.dark-mode .participants-content .MuiDataGrid-footerContainer {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #e0e0e0;
+}

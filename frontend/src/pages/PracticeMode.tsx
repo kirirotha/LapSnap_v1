@@ -27,6 +27,7 @@ import {
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import PracticeSettingsModal from '../components/PracticeSettingsModal';
 import { practiceApi, ActiveLap, CompletedLap, PracticeSessionSettings } from '../services/practiceApi';
+import { lapApi, Lap } from '../services/lapApi';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import './PracticeMode.css';
@@ -83,6 +84,52 @@ export const PracticeMode: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [currentSettings, setCurrentSettings] = useState<PracticeSessionSettings | null>(null);
+  const [showFastestLaps, setShowFastestLaps] = useState(false);
+
+  // Load today's completed laps on mount
+  useEffect(() => {
+    const loadTodaysLaps = async () => {
+      try {
+        const allLaps = await lapApi.getAll();
+        
+        // Filter for today's completed laps
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todaysCompletedLaps = allLaps
+          .filter((lap) => {
+            const lapDate = new Date(lap.startTime);
+            lapDate.setHours(0, 0, 0, 0);
+            return lap.status === 'COMPLETED' && lap.isValid && lapDate.getTime() === today.getTime();
+          })
+          .map((lap): CompletedLap => ({
+            id: lap.id,
+            tagEpc: lap.rfid_tags?.tagId || lap.tagId,
+            tagId: lap.tagId,
+            lapNumber: lap.lapNumber,
+            startTime: new Date(lap.startTime),
+            endTime: new Date(lap.endTime!),
+            lapTime: lap.lapTime!,
+            startAntenna: lap.startAntenna || 0,
+            endAntenna: lap.endAntenna || 0,
+            isValid: lap.isValid,
+            athlete: lap.athletes || (lap.participants ? {
+              id: lap.participants.id,
+              firstName: lap.participants.firstName,
+              lastName: lap.participants.lastName,
+            } : undefined),
+          }))
+          .sort((a, b) => b.endTime.getTime() - a.endTime.getTime())
+          .slice(0, 50); // Keep last 50
+        
+        setCompletedLaps(todaysCompletedLaps);
+      } catch (error) {
+        console.error('Error loading today\'s laps:', error);
+      }
+    };
+
+    loadTodaysLaps();
+  }, []);
 
   // Block navigation if scanning is active
   const blocker = useBlocker(
@@ -167,6 +214,21 @@ export const PracticeMode: React.FC = () => {
         setError(`Lap #${completedLap.lapNumber} too fast: ${completedLap.tagEpc} - ${formatTime(completedLap.lapTime)}`);
       }
     }
+  };
+
+  // Compute display laps based on toggle state
+  const displayLaps = React.useMemo(() => {
+    if (!showFastestLaps) {
+      // Show all laps sorted by completion time (most recent first)
+      return completedLaps;
+    } else {
+      // Show laps sorted by lap time (fastest first)
+      return [...completedLaps].sort((a, b) => a.lapTime - b.lapTime);
+    }
+  }, [completedLaps, showFastestLaps]);
+
+  const handleToggleLapsView = () => {
+    setShowFastestLaps((prev) => !prev);
   };
 
   const handleStart = async (settings: PracticeSessionSettings) => {
@@ -430,11 +492,37 @@ export const PracticeMode: React.FC = () => {
       </Paper>
 
       <Paper className="practice-section">
-        <Typography variant="h6" gutterBottom>
-          Completed Laps (Last 50)
-        </Typography>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            userSelect: 'none',
+            '&:hover': { 
+              backgroundColor: 'action.hover',
+              borderRadius: 1,
+            },
+            padding: 1,
+            marginLeft: -1,
+            marginTop: -1,
+            marginBottom: 1,
+          }}
+          onClick={handleToggleLapsView}
+        >
+          <Typography variant="h6">
+            {showFastestLaps 
+              ? `Today's Fastest Laps (${displayLaps.length})` 
+              : `Completed Laps - Today (${displayLaps.length})`}
+          </Typography>
+          <Chip 
+            label={showFastestLaps ? 'Fastest' : 'Recent'} 
+            size="small" 
+            color={showFastestLaps ? 'secondary' : 'primary'}
+            sx={{ ml: 2 }}
+          />
+        </Box>
         <DataGrid
-          rows={completedLaps}
+          rows={displayLaps}
           columns={completedColumns}
           autoHeight
           pageSizeOptions={[10, 25, 50]}

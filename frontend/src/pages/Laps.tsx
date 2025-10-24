@@ -18,6 +18,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import {
   DataGrid,
@@ -42,6 +44,7 @@ export const Laps: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [validFilter, setValidFilter] = useState<string>('all');
   const [processedFilter, setProcessedFilter] = useState<string>('all');
+  const [dateRangeFilter, setDateRangeFilter] = useState<'today' | 'week' | 'month' | 'all'>('today');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [lapToDelete, setLapToDelete] = useState<string | null>(null);
   const [snackbar, setSnackbar] = useState<{
@@ -264,6 +267,30 @@ export const Laps: React.FC = () => {
   ];
 
   const filteredLaps = laps.filter((lap) => {
+    // Apply date range filter
+    const lapDate = new Date(lap.startTime);
+    const now = new Date();
+    let matchesDateRange = true;
+
+    if (dateRangeFilter === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      matchesDateRange = lapDate >= today && lapDate < tomorrow;
+    } else if (dateRangeFilter === 'week') {
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      weekAgo.setHours(0, 0, 0, 0);
+      matchesDateRange = lapDate >= weekAgo;
+    } else if (dateRangeFilter === 'month') {
+      const monthAgo = new Date();
+      monthAgo.setDate(monthAgo.getDate() - 30);
+      monthAgo.setHours(0, 0, 0, 0);
+      matchesDateRange = lapDate >= monthAgo;
+    }
+    // 'all' shows everything, no filter needed
+
     // Apply search filter
     const searchLower = searchQuery.toLowerCase();
     const matchesSearch =
@@ -288,7 +315,7 @@ export const Laps: React.FC = () => {
       (processedFilter === 'completed' && lap.status === 'COMPLETED') ||
       (processedFilter === 'in_progress' && lap.status === 'IN_PROGRESS');
 
-    return matchesSearch && matchesValid && matchesStatus;
+    return matchesDateRange && matchesSearch && matchesValid && matchesStatus;
   });
 
   return (
@@ -315,6 +342,30 @@ export const Laps: React.FC = () => {
       <Paper className="laps-content">
         <Box className="table-toolbar">
           <Box className="filter-group">
+            <ToggleButtonGroup
+              value={dateRangeFilter}
+              exclusive
+              onChange={(e, newValue) => {
+                if (newValue !== null) {
+                  setDateRangeFilter(newValue);
+                }
+              }}
+              aria-label="date range filter"
+              size="small"
+            >
+              <ToggleButton value="today" aria-label="today">
+                Today
+              </ToggleButton>
+              <ToggleButton value="week" aria-label="week">
+                Week
+              </ToggleButton>
+              <ToggleButton value="month" aria-label="month">
+                Month
+              </ToggleButton>
+              <ToggleButton value="all" aria-label="all">
+                All
+              </ToggleButton>
+            </ToggleButtonGroup>
             <TextField
               placeholder="Search laps..."
               value={searchQuery}

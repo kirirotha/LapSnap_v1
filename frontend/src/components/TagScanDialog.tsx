@@ -13,6 +13,7 @@ import {
   Chip,
   Stack,
   LinearProgress,
+  Backdrop,
 } from '@mui/material';
 import {
   RadioButtonChecked as ScanIcon,
@@ -46,6 +47,7 @@ export const TagScanDialog: React.FC<TagScanDialogProps> = ({
   currentTagId,
 }) => {
   const [scanning, setScanning] = useState(false);
+  const [initializing, setInitializing] = useState(false);
   const [detectedTags, setDetectedTags] = useState<Map<string, TagRead>>(new Map());
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,8 +65,18 @@ export const TagScanDialog: React.FC<TagScanDialogProps> = ({
         console.log('WebSocket connected for tag scanning');
       });
 
+      newSocket.on('rfid:status', (data: any) => {
+        console.log('RFID status update received:', data);
+        if (data.isScanning) {
+          console.log('Scanner is now active, hiding initialization overlay');
+          setInitializing(false);
+        }
+      });
+
       newSocket.on('rfid:tagRead', (data: TagRead) => {
         console.log('Tag detected:', data);
+        // If we detect a tag, scanner must be initialized
+        setInitializing(false);
         setDetectedTags(prev => {
           const updated = new Map(prev);
           updated.set(data.epc, data);
@@ -87,9 +99,16 @@ export const TagScanDialog: React.FC<TagScanDialogProps> = ({
   // Start scanning when dialog opens
   const startScanning = useCallback(async () => {
     try {
+      setInitializing(true);
       setScanning(true);
       setError(null);
       setDetectedTags(new Map());
+      
+      // Fallback: Remove loading overlay after 2 seconds even if status event doesn't fire
+      setTimeout(() => {
+        console.log('Timeout fallback: hiding initialization overlay');
+        setInitializing(false);
+      }, 3000);
       
       const response = await fetch(`${BACKEND_URL}/api/rfid/quick-scan`, {
         method: 'POST',
@@ -107,6 +126,7 @@ export const TagScanDialog: React.FC<TagScanDialogProps> = ({
       console.error('Error starting scan:', err);
       setError(err.message || 'Failed to start scanning. Make sure the RFID reader is connected.');
       setScanning(false);
+      setInitializing(false);
     }
   }, []);
 
@@ -161,7 +181,35 @@ export const TagScanDialog: React.FC<TagScanDialogProps> = ({
         </Stack>
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ position: 'relative', minHeight: 300 }}>
+        {/* Loading Overlay for Scanner Initialization */}
+        {initializing && (
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              bgcolor: 'rgba(255, 255, 255, 0.95)',
+              zIndex: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 2,
+            }}
+          >
+            <CircularProgress size={60} />
+            <Typography variant="h6">
+              Initializing RFID Scanner...
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Configuring antennas and power levels
+            </Typography>
+          </Box>
+        )}
+
         <Box sx={{ mb: 2 }}>
           {scanning && (
             <Box sx={{ mb: 2 }}>

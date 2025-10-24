@@ -27,8 +27,10 @@ import {
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import PracticeSettingsModal from '../components/PracticeSettingsModal';
+import { AthleteLapAnalysisModal } from '../components/AthleteLapAnalysisModal';
 import { practiceApi, ActiveLap, CompletedLap, PracticeSessionSettings } from '../services/practiceApi';
 import { lapApi, Lap } from '../services/lapApi';
+import { athleteApi, Athlete } from '../services/athleteApi';
 import { io, Socket } from 'socket.io-client';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import './PracticeMode.css';
@@ -88,6 +90,8 @@ export const PracticeMode: React.FC = () => {
   const [success, setSuccess] = useState<string>('');
   const [currentSettings, setCurrentSettings] = useState<PracticeSessionSettings | null>(null);
   const [showFastestLaps, setShowFastestLaps] = useState(false);
+  const [analysisModalOpen, setAnalysisModalOpen] = useState(false);
+  const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
 
   // Load today's completed laps on mount
   useEffect(() => {
@@ -243,6 +247,23 @@ export const PracticeMode: React.FC = () => {
       return [...completedLaps].sort((a, b) => a.lapTime - b.lapTime);
     }
   }, [completedLaps, showFastestLaps]);
+
+  // Handle row click to open athlete analysis modal
+  const handleLapRowClick = async (params: any) => {
+    const lap = params.row as CompletedLap;
+    
+    // Check if this lap belongs to an athlete
+    if (lap.athlete?.id) {
+      try {
+        const athlete = await athleteApi.getById(lap.athlete.id);
+        setSelectedAthlete(athlete);
+        setAnalysisModalOpen(true);
+      } catch (error) {
+        console.error('Error loading athlete:', error);
+        setError('Failed to load athlete information');
+      }
+    }
+  };
 
   const handleToggleLapsView = () => {
     setShowFastestLaps((prev) => !prev);
@@ -604,6 +625,12 @@ export const PracticeMode: React.FC = () => {
             pagination: { paginationModel: { pageSize: 10 } },
           }}
           disableRowSelectionOnClick
+          onRowClick={handleLapRowClick}
+          sx={{
+            '& .MuiDataGrid-row': {
+              cursor: 'pointer',
+            },
+          }}
         />
       </Paper>
 
@@ -643,6 +670,8 @@ export const PracticeMode: React.FC = () => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
           flexDirection: 'column',
           gap: 2,
+          justifyContent: 'flex-start',
+          paddingTop: '120px',
         }}
         open={loading}
       >
@@ -723,6 +752,13 @@ export const PracticeMode: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Athlete Lap Analysis Modal */}
+      <AthleteLapAnalysisModal
+        open={analysisModalOpen}
+        onClose={() => setAnalysisModalOpen(false)}
+        athlete={selectedAthlete}
+      />
     </Box>
   );
 };

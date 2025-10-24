@@ -141,6 +141,24 @@ export const Athletes: React.FC = () => {
       valueGetter: (params, row) => `${row.firstName} ${row.lastName}`,
     },
     {
+      field: 'defaultTagId',
+      headerName: 'RFID Tag',
+      flex: 1,
+      minWidth: 180,
+      renderCell: (params) => {
+        if (!params.value) return <Chip label="No Tag" size="small" variant="outlined" />;
+        return (
+          <Typography 
+            variant="body2" 
+            fontFamily="monospace" 
+            sx={{ fontSize: '0.875rem' }}
+          >
+            {params.value}
+          </Typography>
+        );
+      },
+    },
+    {
       field: 'dateOfBirth',
       headerName: 'Birth Date',
       width: 130,
@@ -155,16 +173,26 @@ export const Athletes: React.FC = () => {
       },
     },
     {
+      field: 'age',
+      headerName: 'Age',
+      width: 80,
+      valueGetter: (params, row) => {
+        if (!row.dateOfBirth) return null;
+        const birthDate = new Date(row.dateOfBirth);
+        const today = new Date();
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+          age--;
+        }
+        return age;
+      },
+      renderCell: (params) => params.value ?? '-',
+    },
+    {
       field: 'gender',
       headerName: 'Gender',
       width: 100,
-      renderCell: (params) => params.value || '-',
-    },
-    {
-      field: 'teamAffiliation',
-      headerName: 'Team',
-      flex: 1,
-      minWidth: 120,
       renderCell: (params) => params.value || '-',
     },
     {

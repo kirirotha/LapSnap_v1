@@ -11,7 +11,7 @@ export interface Lap {
   startTime: string;
   endTime?: string;
   lapTime?: number; // in milliseconds
-  status: 'IN_PROGRESS' | 'COMPLETED' | 'INVALID' | 'DNF';
+  status: 'IN_PROGRESS' | 'COMPLETED' | 'INVALID' | 'DNF' | 'CANCELED';
   startAntenna?: number;
   endAntenna?: number;
   startTimeRecordId?: string;
@@ -60,7 +60,7 @@ export interface CreateLapDto {
   startTime: string;
   endTime?: string;
   lapTime?: number;
-  status?: 'IN_PROGRESS' | 'COMPLETED' | 'INVALID' | 'DNF';
+  status?: 'IN_PROGRESS' | 'COMPLETED' | 'INVALID' | 'DNF' | 'CANCELED';
   startAntenna?: number;
   endAntenna?: number;
   isValid?: boolean;

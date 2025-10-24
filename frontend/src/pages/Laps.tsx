@@ -20,6 +20,7 @@ import {
   DialogActions,
   ToggleButtonGroup,
   ToggleButton,
+  Tooltip,
 } from '@mui/material';
 import {
   DataGrid,
@@ -110,8 +111,21 @@ export const Laps: React.FC = () => {
 
   const handleToggleValid = async (lap: Lap) => {
     try {
-      await lapApi.update(lap.id, { isValid: !lap.isValid });
-      showSnackbar(`Lap marked as ${!lap.isValid ? 'valid' : 'invalid'}`, 'success');
+      const newIsValid = !lap.isValid;
+      const updateData: any = { 
+        isValid: newIsValid,
+      };
+      
+      // Update status when marking as invalid
+      if (!newIsValid) {
+        updateData.status = 'INVALID';
+      } else if (lap.status === 'INVALID') {
+        // If marking as valid and current status is INVALID, change to COMPLETED
+        updateData.status = 'COMPLETED';
+      }
+      
+      await lapApi.update(lap.id, updateData);
+      showSnackbar(`Lap marked as ${newIsValid ? 'valid' : 'invalid'}`, 'success');
       loadLaps();
     } catch (error) {
       console.error('Error updating lap:', error);
@@ -141,15 +155,10 @@ export const Laps: React.FC = () => {
 
   const columns: GridColDef[] = [
     {
-      field: 'lapNumber',
-      headerName: 'Lap #',
-      width: 80,
-      align: 'center',
-    },
-    {
       field: 'athleteName',
       headerName: 'Athlete',
-      width: 200,
+      flex: 1,
+      minWidth: 150,
       valueGetter: (params, row) => {
         // Use the captured athlete from the lap (athleteId relation)
         if (row.athletes) {
@@ -161,28 +170,45 @@ export const Laps: React.FC = () => {
         }
         return 'Unassigned';
       },
-    },
-    {
-      field: 'eventName',
-      headerName: 'Event',
-      width: 180,
-      valueGetter: (params, row) => row.events?.name || '-',
+      renderCell: (params) => (
+        <Tooltip title={params.value} arrow>
+          <Box sx={{ 
+            overflow: 'hidden', 
+            textOverflow: 'ellipsis', 
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+          }}>
+            {params.value}
+          </Box>
+        </Tooltip>
+      ),
     },
     {
       field: 'tagId',
       headerName: 'Tag ID',
-      width: 180,
+      flex: 1.2,
+      minWidth: 170,
       valueGetter: (params, row) => row.rfid_tags?.tagId || row.tagId,
       renderCell: (params) => (
-        <Box sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-          {params.value}
-        </Box>
+        <Tooltip title={params.value} arrow>
+          <Box sx={{ 
+            fontFamily: 'monospace', 
+            fontSize: '0.85rem',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            cursor: 'pointer',
+          }}>
+            {params.value}
+          </Box>
+        </Tooltip>
       ),
     },
     {
       field: 'lapTime',
       headerName: 'Lap Time',
-      width: 130,
+      flex: 0.6,
+      minWidth: 110,
       renderCell: (params) => (
         params.value ? (
           <Chip
@@ -192,37 +218,36 @@ export const Laps: React.FC = () => {
             icon={<TimerIcon />}
           />
         ) : (
-          <Chip
-            label="In Progress"
-            color="primary"
-            size="small"
-            variant="outlined"
-          />
+          <span>-</span>
         )
       ),
     },
     {
       field: 'startTime',
       headerName: 'Start Time',
-      width: 160,
+      flex: 1,
+      minWidth: 140,
       renderCell: (params) => formatTime(params.value),
     },
     {
       field: 'endTime',
       headerName: 'End Time',
-      width: 160,
+      flex: 1,
+      minWidth: 140,
       renderCell: (params) => params.value ? formatTime(params.value) : '-',
     },
     {
       field: 'status',
       headerName: 'Status',
-      width: 120,
+      flex: 0.75,
+      minWidth: 110,
       renderCell: (params) => {
-        const statusColors: Record<string, 'success' | 'primary' | 'error' | 'warning'> = {
+        const statusColors: Record<string, 'success' | 'primary' | 'error' | 'warning' | 'default'> = {
           COMPLETED: 'success',
           IN_PROGRESS: 'primary',
           INVALID: 'error',
           DNF: 'warning',
+          CANCELED: 'default',
         };
         return (
           <Chip
@@ -234,23 +259,11 @@ export const Laps: React.FC = () => {
       },
     },
     {
-      field: 'isValid',
-      headerName: 'Valid',
-      width: 90,
-      renderCell: (params) => (
-        <Chip
-          icon={params.value ? <ValidIcon /> : <InvalidIcon />}
-          label={params.value ? 'Valid' : 'Invalid'}
-          color={params.value ? 'success' : 'error'}
-          size="small"
-        />
-      ),
-    },
-    {
       field: 'actions',
       type: 'actions',
       headerName: 'Actions',
-      width: 100,
+      flex: 0.5,
+      minWidth: 100,
       getActions: (params: GridRowParams) => [
         <GridActionsCellItem
           icon={params.row.isValid ? <InvalidIcon /> : <ValidIcon />}

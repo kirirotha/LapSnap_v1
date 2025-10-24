@@ -8,6 +8,7 @@ export interface AntennaConfig {
 
 export interface PracticeSessionSettings {
   minLapTime: number; // milliseconds
+  maxLapTime?: number; // milliseconds - optional, laps exceeding this will be marked invalid
   antennas: AntennaConfig[];
 }
 

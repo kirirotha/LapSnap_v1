@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react';
 import {
   Box,
   Button,
@@ -23,6 +23,7 @@ import {
   Settings as SettingsIcon,
   Timer as TimerIcon,
   Warning as WarningIcon,
+  Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import PracticeSettingsModal from '../components/PracticeSettingsModal';
@@ -81,6 +82,8 @@ export const PracticeMode: React.FC = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
   const [pendingNavigation, setPendingNavigation] = useState<(() => void) | null>(null);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [lapToCancel, setLapToCancel] = useState<ActiveLap | null>(null);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
   const [currentSettings, setCurrentSettings] = useState<PracticeSessionSettings | null>(null);
@@ -148,30 +151,7 @@ export const PracticeMode: React.FC = () => {
   }, [blocker]);
 
   // Socket.IO connection for real-time lap updates
-  useEffect(() => {
-    const socket = io('http://localhost:3000', {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-    });
-
-    socket.on('connect', () => {
-      console.log('Practice Mode: Socket connected');
-    });
-
-    socket.on('practice:lapUpdate', handleLapUpdate);
-
-    socket.on('disconnect', () => {
-      console.log('Practice Mode: Socket disconnected');
-    });
-
-    socketRef.current = socket;
-
-    return () => {
-      socket.close();
-    };
-  }, []);
-
-  const handleLapUpdate = (data: any) => {
+  const handleLapUpdate = useCallback((data: any) => {
     console.log('Lap update received:', data);
 
     if (data.type === 'lap_started') {
@@ -201,20 +181,57 @@ export const PracticeMode: React.FC = () => {
         athlete: data.lap.athlete,
       };
 
+      console.log('Removing lap from active laps:', completedLap.tagEpc);
       // Remove from active laps
-      setActiveLaps((prev) => prev.filter((lap) => lap.tagEpc !== completedLap.tagEpc));
+      setActiveLaps((prev) => {
+        const filtered = prev.filter((lap) => lap.tagEpc !== completedLap.tagEpc);
+        console.log('Active laps before:', prev.length, 'after:', filtered.length);
+        return filtered;
+      });
 
-      // Add to completed laps if valid
+      // Show appropriate message based on validity
       if (completedLap.isValid) {
         setCompletedLaps((prev) => [completedLap, ...prev].slice(0, 50));
         setSuccess(
           `Lap #${completedLap.lapNumber} completed: ${completedLap.tagEpc} - ${formatTime(completedLap.lapTime)}`
         );
       } else {
-        setError(`Lap #${completedLap.lapNumber} too fast: ${completedLap.tagEpc} - ${formatTime(completedLap.lapTime)}`);
+        // Still add invalid laps to completed laps list (so they're visible)
+        // But show error message instead of success
+        const invalidReason = data.lap.invalidReason || 'Invalid lap';
+        if (invalidReason.includes('exceeds maximum')) {
+          setError(`Lap #${completedLap.lapNumber} exceeded time limit: ${completedLap.tagEpc}`);
+        } else if (invalidReason.includes('below minimum')) {
+          setError(`Lap #${completedLap.lapNumber} too fast: ${completedLap.tagEpc} - ${formatTime(completedLap.lapTime)}`);
+        } else {
+          setError(`Lap #${completedLap.lapNumber} invalid: ${completedLap.tagEpc} - ${invalidReason}`);
+        }
       }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const socket = io('http://localhost:3000', {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+    });
+
+    socket.on('connect', () => {
+      console.log('Practice Mode: Socket connected');
+    });
+
+    socket.on('practice:lapUpdate', handleLapUpdate);
+
+    socket.on('disconnect', () => {
+      console.log('Practice Mode: Socket disconnected');
+    });
+
+    socketRef.current = socket;
+
+    return () => {
+      socket.close();
+    };
+  }, [handleLapUpdate]);
 
   // Compute display laps based on toggle state
   const displayLaps = React.useMemo(() => {
@@ -325,6 +342,44 @@ export const PracticeMode: React.FC = () => {
     blocker.reset?.();
   };
 
+  const handleOpenCancelDialog = (lap: ActiveLap) => {
+    setLapToCancel(lap);
+    setCancelDialogOpen(true);
+  };
+
+  const handleCloseCancelDialog = () => {
+    setCancelDialogOpen(false);
+    setLapToCancel(null);
+  };
+
+  const handleConfirmCancelLap = async () => {
+    if (!lapToCancel) return;
+
+    try {
+      setLoading(true);
+      setLoadingMessage('Canceling lap...');
+
+      // Update the lap status to CANCELED instead of deleting
+      await lapApi.update(lapToCancel.id, {
+        status: 'CANCELED',
+        isValid: false,
+        invalidReason: 'Canceled by user',
+        lapTime: undefined,
+        endTime: undefined,
+      });
+
+      // Remove from active laps
+      setActiveLaps((prev) => prev.filter((lap) => lap.id !== lapToCancel.id));
+
+      setSuccess(`Lap #${lapToCancel.lapNumber} canceled successfully`);
+      handleCloseCancelDialog();
+    } catch (err: any) {
+      setError(err.response?.data?.error || err.message || 'Failed to cancel lap');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const minutes = Math.floor(totalSeconds / 60);
@@ -336,12 +391,6 @@ export const PracticeMode: React.FC = () => {
   };
 
   const activeColumns: GridColDef[] = [
-    { 
-      field: 'lapNumber', 
-      headerName: 'Lap #', 
-      width: 80,
-      align: 'center',
-    },
     { 
       field: 'tagEpc', 
       headerName: 'Tag EPC',
@@ -382,10 +431,33 @@ export const PracticeMode: React.FC = () => {
         />
       ),
     },
+    {
+      field: 'actions',
+      headerName: 'Actions',
+      width: 120,
+      align: 'center' as const,
+      sortable: false,
+      filterable: false,
+      hideable: false,
+      disableColumnMenu: true,
+      renderCell: (params) => (
+        <IconButton
+          color="error"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleOpenCancelDialog(params.row);
+          }}
+          title="Cancel Lap"
+          aria-label="Cancel lap"
+        >
+          <CancelIcon />
+        </IconButton>
+      ),
+    },
   ];
 
   const completedColumns: GridColDef[] = [
-    { field: 'lapNumber', headerName: 'Lap #', width: 80, align: 'center' },
     { 
       field: 'tagEpc', 
       headerName: 'Tag EPC',
@@ -469,8 +541,9 @@ export const PracticeMode: React.FC = () => {
 
       {isScanning && currentSettings && (
         <Alert severity="info" sx={{ mb: 2 }}>
-          Practice session active - Min lap time: {currentSettings.minLapTime / 1000}s - Active
-          antennas: {currentSettings.antennas.filter((a) => a.isActive).map((a) => a.antennaNumber).join(', ')}
+          Practice session active - Min lap time: {currentSettings.minLapTime / 1000}s
+          {currentSettings.maxLapTime && ` - Max lap time: ${currentSettings.maxLapTime / 1000}s`}
+          {' - '}Active antennas: {currentSettings.antennas.filter((a) => a.isActive).map((a) => a.antennaNumber).join(', ')}
         </Alert>
       )}
 
@@ -481,6 +554,7 @@ export const PracticeMode: React.FC = () => {
         <DataGrid
           rows={activeLaps}
           columns={activeColumns}
+          getRowId={(row) => row.id}
           autoHeight
           disableRowSelectionOnClick
           hideFooter={activeLaps.length <= 10}
@@ -606,6 +680,46 @@ export const PracticeMode: React.FC = () => {
           </Button>
           <Button onClick={handleConfirmNavigation} color="warning" variant="contained" autoFocus>
             End Session & Leave
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Cancel Lap Confirmation Dialog */}
+      <Dialog
+        open={cancelDialogOpen}
+        onClose={handleCloseCancelDialog}
+        aria-labelledby="cancel-lap-dialog-title"
+        aria-describedby="cancel-lap-dialog-description"
+      >
+        <DialogTitle id="cancel-lap-dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <WarningIcon color="error" />
+          Cancel Lap?
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="cancel-lap-dialog-description">
+            Are you sure you want to cancel this lap? This action cannot be undone.
+            <br /><br />
+            {lapToCancel && (
+              <>
+                <strong>Lap #:</strong> {lapToCancel.lapNumber}
+                <br />
+                <strong>Tag EPC:</strong> {lapToCancel.tagEpc}
+                <br />
+                <strong>Athlete:</strong> {lapToCancel.athlete 
+                  ? `${lapToCancel.athlete.firstName} ${lapToCancel.athlete.lastName}` 
+                  : 'Unknown'}
+                <br />
+                <strong>Started:</strong> {new Date(lapToCancel.startTime).toLocaleTimeString()}
+              </>
+            )}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseCancelDialog} color="inherit">
+            Keep Lap
+          </Button>
+          <Button onClick={handleConfirmCancelLap} color="error" variant="contained" autoFocus>
+            Cancel Lap
           </Button>
         </DialogActions>
       </Dialog>

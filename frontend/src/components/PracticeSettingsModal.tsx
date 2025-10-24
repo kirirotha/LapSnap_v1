@@ -41,6 +41,7 @@ interface Props {
 
 const PracticeSettingsModal: React.FC<Props> = ({ open, onClose, onStart, initialSettings }) => {
   const [minLapTime, setMinLapTime] = useState<number>(5); // seconds
+  const [maxLapTime, setMaxLapTime] = useState<number>(0); // seconds, 0 means no max
   const [antennas, setAntennas] = useState<AntennaConfig[]>([
     { antennaNumber: 1, isActive: true, powerLevel: 150 },
     { antennaNumber: 2, isActive: true, powerLevel: 150 },
@@ -89,11 +90,13 @@ const PracticeSettingsModal: React.FC<Props> = ({ open, onClose, onStart, initia
 
   const applySettings = (settings: PracticeSessionSettings) => {
     setMinLapTime(settings.minLapTime / 1000); // Convert ms to seconds
+    setMaxLapTime(settings.maxLapTime ? settings.maxLapTime / 1000 : 0); // Convert ms to seconds
     setAntennas(settings.antennas);
   };
 
   const getCurrentSettings = (): PracticeSessionSettings => ({
     minLapTime: minLapTime * 1000,
+    maxLapTime: maxLapTime > 0 ? maxLapTime * 1000 : undefined,
     antennas,
   });
 
@@ -323,6 +326,18 @@ const PracticeSettingsModal: React.FC<Props> = ({ open, onClose, onStart, initia
               fullWidth
               helperText="Laps faster than this will be discarded"
               inputProps={{ min: 1, max: 300 }}
+              sx={{ mb: 2 }}
+            />
+            
+            <TextField
+              label="Max Lap Time (sec)"
+              type="number"
+              value={maxLapTime}
+              onChange={(e) => setMaxLapTime(Number(e.target.value))}
+              size="small"
+              fullWidth
+              helperText="Laps slower than this will be marked invalid (0 = no limit)"
+              inputProps={{ min: 0, max: 3600 }}
               sx={{ mb: 2 }}
             />
 

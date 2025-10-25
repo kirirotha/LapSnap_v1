@@ -1,0 +1,38 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.placeholder {
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  padding: 4rem;
+  text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.placeholder h2 {
+  font-size: 2rem;
+  color: #333;
+  margin-bottom: 1rem;
+}
+
+.placeholder p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+/* Dark Mode Styles */
+.dark-mode .placeholder {
+  background: rgba(45, 45, 45, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.dark-mode .placeholder h2 {
+  color: #e0e0e0;
+}
+
+.dark-mode .placeholder p {
+  color: #b0b0b0;
+}

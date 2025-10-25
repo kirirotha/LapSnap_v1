@@ -17,12 +17,14 @@ export interface ActiveLap {
   tagEpc: string;
   tagId: string;
   lapNumber?: number; // Lap number from laps table
+  plateNumber?: string; // Direct plate number assigned to the lap
   startTime: Date;
   startAntenna: number;
   athlete?: {
     id: string;
     firstName: string;
     lastName: string;
+    defaultNumber?: string;
   };
 }
 
@@ -31,6 +33,7 @@ export interface CompletedLap {
   tagEpc: string;
   tagId: string;
   lapNumber?: number; // Lap number from laps table
+  plateNumber?: string; // Direct plate number assigned to the lap
   lapTime: number;
   startTime?: Date; // Add start time for reference
   endTime: Date;
@@ -41,6 +44,7 @@ export interface CompletedLap {
     id: string;
     firstName: string;
     lastName: string;
+    defaultNumber?: string;
   };
 }
 

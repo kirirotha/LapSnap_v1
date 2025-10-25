@@ -98,6 +98,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
     privacyLevel: 'PUBLIC',
     notes: '',
     defaultTagId: '',
+    defaultNumber: '',
   });
 
   useEffect(() => {
@@ -126,6 +127,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
         privacyLevel: athlete.privacyLevel,
         notes: athlete.notes || '',
         defaultTagId: athlete.rfid_tags?.tagId || '',
+        defaultNumber: athlete.defaultNumber || '',
       });
     } else {
       // Reset form for new athlete
@@ -153,6 +155,7 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
         privacyLevel: 'PUBLIC',
         notes: '',
         defaultTagId: '',
+        defaultNumber: '',
       });
     }
     setTabValue(0);
@@ -309,29 +312,39 @@ export const AthleteModal: React.FC<AthleteModalProps> = ({
                   RFID Tag Assignment
                 </Typography>
                 <Paper variant="outlined" sx={{ p: 2, bgcolor: 'action.hover' }}>
-                  <TextField
-                    fullWidth
-                    label="RFID Tag ID"
-                    value={formData.defaultTagId}
-                    onChange={handleChange('defaultTagId')}
-                    placeholder="Scan or enter tag ID manually"
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <Tooltip title="Scan RFID Tag">
-                            <IconButton
-                              onClick={() => setScanDialogOpen(true)}
-                              color="primary"
-                              edge="end"
-                            >
-                              <ScanIcon />
-                            </IconButton>
-                          </Tooltip>
-                        </InputAdornment>
-                      ),
-                    }}
-                    helperText="Assign an RFID tag to this athlete for automatic timing"
-                  />
+                  <Stack spacing={2}>
+                    <TextField
+                      fullWidth
+                      label="Plate Number"
+                      value={formData.defaultNumber || ''}
+                      onChange={handleChange('defaultNumber')}
+                      placeholder="Enter plate/bib number"
+                      helperText="Race plate or bib number for this athlete"
+                    />
+                    <TextField
+                      fullWidth
+                      label="RFID Tag ID"
+                      value={formData.defaultTagId}
+                      onChange={handleChange('defaultTagId')}
+                      placeholder="Scan or enter tag ID manually"
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <Tooltip title="Scan RFID Tag">
+                              <IconButton
+                                onClick={() => setScanDialogOpen(true)}
+                                color="primary"
+                                edge="end"
+                              >
+                                <ScanIcon />
+                              </IconButton>
+                            </Tooltip>
+                          </InputAdornment>
+                        ),
+                      }}
+                      helperText="Assign an RFID tag to this athlete for automatic timing"
+                    />
+                  </Stack>
                 </Paper>
               </Box>
             </Stack>

@@ -5,6 +5,7 @@ export interface Lap {
   eventId: string;
   participantId?: string;
   athleteId?: string;
+  plateNumber?: string;
   tagId: string;
   checkpointId: string;
   lapNumber: number;
@@ -35,6 +36,7 @@ export interface Lap {
     id: string;
     firstName: string;
     lastName: string;
+    defaultNumber?: string;
   };
   checkpoints?: {
     id: string;

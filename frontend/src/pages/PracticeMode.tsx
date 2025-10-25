@@ -114,6 +114,7 @@ export const PracticeMode: React.FC = () => {
             tagEpc: lap.rfid_tags?.tagId || lap.tagId,
             tagId: lap.tagId,
             lapNumber: lap.lapNumber,
+            plateNumber: lap.plateNumber,
             startTime: new Date(lap.startTime),
             endTime: new Date(lap.endTime!),
             lapTime: lap.lapTime!,
@@ -164,6 +165,7 @@ export const PracticeMode: React.FC = () => {
         tagEpc: data.lap.rfid_tags.tagId,
         tagId: data.lap.tagId,
         lapNumber: data.lap.lapNumber, // Now from laps table
+        plateNumber: data.lap.plateNumber,
         startTime: new Date(data.lap.startTime),
         startAntenna: data.lap.startAntenna || 0,
         athlete: data.lap.athlete,
@@ -176,6 +178,7 @@ export const PracticeMode: React.FC = () => {
         tagEpc: data.lap.rfid_tags.tagId,
         tagId: data.lap.tagId,
         lapNumber: data.lap.lapNumber, // Now from laps table
+        plateNumber: data.lap.plateNumber,
         startTime: new Date(data.lap.startTime), // Add start time
         endTime: new Date(data.lap.endTime),
         lapTime: data.lap.lapTime,
@@ -412,6 +415,33 @@ export const PracticeMode: React.FC = () => {
   };
 
   const activeColumns: GridColDef[] = [
+    {
+      field: 'athlete',
+      headerName: 'Athlete',
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (value, row) =>
+        row.athlete
+          ? `${row.athlete.firstName} ${row.athlete.lastName}`
+          : 'Unknown',
+    },
+    {
+      field: 'plateNumber',
+      headerName: 'Plate #',
+      width: 100,
+      valueGetter: (value, row) => row.plateNumber || row.athlete?.defaultNumber || null,
+      renderCell: (params) => {
+        if (!params.value) return '-';
+        return (
+          <Chip 
+            label={params.value} 
+            size="small" 
+            color="primary"
+            variant="outlined"
+          />
+        );
+      },
+    },
     { 
       field: 'tagEpc', 
       headerName: 'Tag EPC',
@@ -422,16 +452,6 @@ export const PracticeMode: React.FC = () => {
           {params.value}
         </Box>
       ),
-    },
-    {
-      field: 'athlete',
-      headerName: 'Athlete',
-      flex: 1,
-      minWidth: 150,
-      valueGetter: (value, row) =>
-        row.athlete
-          ? `${row.athlete.firstName} ${row.athlete.lastName}`
-          : 'Unknown',
     },
     { 
       field: 'startAntenna', 
@@ -479,6 +499,33 @@ export const PracticeMode: React.FC = () => {
   ];
 
   const completedColumns: GridColDef[] = [
+    {
+      field: 'athlete',
+      headerName: 'Athlete',
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (value, row) =>
+        row.athlete
+          ? `${row.athlete.firstName} ${row.athlete.lastName}`
+          : 'Unknown',
+    },
+    {
+      field: 'plateNumber',
+      headerName: 'Plate #',
+      width: 100,
+      valueGetter: (value, row) => row.plateNumber || null,
+      renderCell: (params) => {
+        if (!params.value) return '-';
+        return (
+          <Chip 
+            label={params.value} 
+            size="small" 
+            color="primary"
+            variant="outlined"
+          />
+        );
+      },
+    },
     { 
       field: 'tagEpc', 
       headerName: 'Tag EPC',
@@ -489,16 +536,6 @@ export const PracticeMode: React.FC = () => {
           {params.value}
         </Box>
       ),
-    },
-    {
-      field: 'athlete',
-      headerName: 'Athlete',
-      flex: 1,
-      minWidth: 150,
-      valueGetter: (value, row) =>
-        row.athlete
-          ? `${row.athlete.firstName} ${row.athlete.lastName}`
-          : 'Unknown',
     },
     {
       field: 'lapTime',

@@ -184,6 +184,27 @@ export const Laps: React.FC = () => {
       ),
     },
     {
+      field: 'plateNumber',
+      headerName: 'Plate #',
+      width: 100,
+      valueGetter: (params, row) => {
+        // Show ONLY the lap's assigned plate number (not the athlete's current one)
+        // This preserves historical accuracy
+        return row.plateNumber || null;
+      },
+      renderCell: (params) => {
+        if (!params.value) return '-';
+        return (
+          <Chip 
+            label={params.value} 
+            size="small" 
+            color="primary"
+            variant="outlined"
+          />
+        );
+      },
+    },
+    {
       field: 'tagId',
       headerName: 'Tag ID',
       flex: 1.2,

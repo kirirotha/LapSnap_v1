@@ -141,17 +141,39 @@ export const Athletes: React.FC = () => {
       valueGetter: (params, row) => `${row.firstName} ${row.lastName}`,
     },
     {
-      field: 'defaultTagId',
-      headerName: 'RFID Tag',
+      field: 'defaultNumber',
+      headerName: 'Plate #',
+      width: 100,
+      renderCell: (params) => {
+        if (!params.value) return '-';
+        return (
+          <Chip 
+            label={params.value} 
+            size="small" 
+            color="primary"
+            variant="outlined"
+          />
+        );
+      },
+    },
+    {
+      field: 'tagEpc',
+      headerName: 'Tag EPC',
       flex: 1,
       minWidth: 180,
+      valueGetter: (params, row) => row.rfid_tags?.tagId || null,
       renderCell: (params) => {
         if (!params.value) return <Chip label="No Tag" size="small" variant="outlined" />;
         return (
           <Typography 
             variant="body2" 
             fontFamily="monospace" 
-            sx={{ fontSize: '0.875rem' }}
+            sx={{ 
+              fontSize: '0.875rem',
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%'
+            }}
           >
             {params.value}
           </Typography>

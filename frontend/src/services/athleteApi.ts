@@ -34,6 +34,7 @@ export interface Athlete {
   marketingOptIn: boolean;
   privacyLevel: 'PUBLIC' | 'REGISTERED_USERS_ONLY' | 'ORGANIZERS_ONLY' | 'PRIVATE';
   defaultTagId?: string;
+  defaultNumber?: string;
   rfid_tags?: {
     id: string;
     tagId: string;
@@ -67,6 +68,7 @@ export interface CreateAthleteDto {
   marketingOptIn?: boolean;
   privacyLevel?: 'PUBLIC' | 'REGISTERED_USERS_ONLY' | 'ORGANIZERS_ONLY' | 'PRIVATE';
   defaultTagId?: string;
+  defaultNumber?: string;
   notes?: string;
 }
 

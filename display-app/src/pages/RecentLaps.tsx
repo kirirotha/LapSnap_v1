@@ -14,6 +14,8 @@ function RecentLaps({ isDarkMode, isFullscreen: isFullscreenProp = false, onTogg
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [athleteLaps, setAthleteLaps] = useState<Lap[]>([]);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchLaps = async () => {
@@ -91,6 +93,24 @@ function RecentLaps({ isDarkMode, isFullscreen: isFullscreenProp = false, onTogg
     }
   };
 
+  const handleRowClick = async (lap: Lap) => {
+    if (!lap.athleteId) return;
+    
+    // Fetch last 5 laps for this athlete
+    const athleteFilteredLaps = laps
+      .filter(l => l.athleteId === lap.athleteId && l.status === 'COMPLETED')
+      .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, 5);
+    
+    setAthleteLaps(athleteFilteredLaps);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setAthleteLaps([]);
+  };
+
   if (loading && laps.length === 0) {
     return (
       <div className="recent-laps">
@@ -161,7 +181,7 @@ function RecentLaps({ isDarkMode, isFullscreen: isFullscreenProp = false, onTogg
         <table className="laps-table">
           <thead>
             <tr>
-              <th>Athlete Name</th>
+              <th>Athlete</th>
               <th>Plate #</th>
               <th>Lap Time</th>
               <th>Start Time</th>
@@ -176,7 +196,9 @@ function RecentLaps({ isDarkMode, isFullscreen: isFullscreenProp = false, onTogg
               laps.map((lap) => (
                 <tr 
                   key={lap.id}
-                  className={lap.status === 'IN_PROGRESS' ? 'in-progress' : ''}
+                  className={lap.status === 'IN_PROGRESS' ? 'in-progress' : 'clickable-row'}
+                  onClick={() => lap.status === 'COMPLETED' && handleRowClick(lap)}
+                  style={{ cursor: lap.status === 'COMPLETED' ? 'pointer' : 'default' }}
                 >
                   <td className="athlete-name">{getAthleteName(lap)}</td>
                   <td className="plate-number">{lap.plateNumber || '-'}</td>
@@ -203,6 +225,42 @@ function RecentLaps({ isDarkMode, isFullscreen: isFullscreenProp = false, onTogg
           </tbody>
         </table>
       </div>
+
+      {/* Athlete Laps Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Last 5 Laps - {athleteLaps[0]?.athleteName || 'Athlete'}</h3>
+              <button className="modal-close" onClick={closeModal}>×</button>
+            </div>
+            <div className="modal-body">
+              <table className="modal-table">
+                <thead>
+                  <tr>
+                    <th>Lap Time</th>
+                    <th>Start Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {athleteLaps.length === 0 ? (
+                    <tr>
+                      <td colSpan={2} className="no-data">No completed laps found</td>
+                    </tr>
+                  ) : (
+                    athleteLaps.map((lap) => (
+                      <tr key={lap.id}>
+                        <td className="lap-time">{formatLapTime(lap.lapTime)}</td>
+                        <td>{formatTimestamp(lap.timestamp)}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -36,3 +36,37 @@
 .dark-mode .placeholder p {
   color: #b0b0b0;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 0 1rem;
+    margin-top: 3%;
+  }
+
+  .placeholder {
+    padding: 2rem 1rem;
+  }
+
+  .placeholder h2 {
+    font-size: 1.5rem;
+  }
+
+  .placeholder p {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .placeholder {
+    padding: 1.5rem 1rem;
+  }
+
+  .placeholder h2 {
+    font-size: 1.25rem;
+  }
+
+  .placeholder p {
+    font-size: 0.9rem;
+  }
+}

@@ -81,3 +81,4 @@ temp/
 # Local development docs (not tracked)
 DB_QUICK_START.md
 LOCAL_SETUP.md
+.vercel
